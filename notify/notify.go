@@ -76,6 +76,14 @@ func (r *Result) Wait() error {
 	return r.Err()
 }
 
+// Notify will return an Result which can be inspect for error or success.
+// Because the operation is async before call .Err() it's needed to call .Wait()
+// which will return when the operation is complete an error (or nil) is available.
+//
+// The operation is async but an amount of parallel requests is assured,
+// which means that the call for this method will not block if the number of
+// request is less than defaultMaxParallel, which could be changed using MaxParallel() option.
+// Once the limit is reach, new calls will be blocked.
 func (c Client) Notify(ctx context.Context, msg string) *Result {
 	// parallel has X slots (configured through MaxParallel option)
 	// here we're getting one slot to be able to execute the following code.

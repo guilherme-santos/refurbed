@@ -108,6 +108,8 @@ scanFor:
 			err := res.Wait()
 			if err != nil && err != context.Canceled {
 				fmt.Fprintf(os.Stderr, "Error sending message %q: %s\n", txt, err)
+			} else if verbose {
+				fmt.Fprintf(os.Stdout, "Message %q was sent\n", txt)
 			}
 			wg.Done()
 		}()
