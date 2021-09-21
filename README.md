@@ -46,16 +46,16 @@ func main() {
 }
 ```
 
-### Notify method
+### Notify() method
 
 The `Notify` is non-blocking if the number of ongoing requests is less than 1000 (this number can be changed passing the `MaxParallel()` option), once the limit is reach, new calls for the method will block until previous requests are over.
 
 The `Notify` method returns a `*notify.Result` with two methods, `Err()` and `Wait()`.
 
-* `Err()`: returns if the operation was success (returns nil) or a failure (return non-nil error). This method doesn't not guarantee that the operation is over, but once it is, all the subsequent calls will return the same error or nil.
+* `Err()`: returns if the operation was success (returns nil) or a failure (return non-nil error). This method does not guarantee that the operation is over, but once it is, all the subsequent calls will return the same error or nil.
 * `Wait()` blocks and wait the operation is over and returns success (returns nil) or a failure (return non-nil error).
 
-If you're not interested in the result of the operation and wants to have a completely async operation, is safe to ignore the return of `Notify()` method.
+If you're not interested in the result and wants to have a completely async operation, is safe to ignore the return of `Notify()` method.
 
 ### Developing
 
