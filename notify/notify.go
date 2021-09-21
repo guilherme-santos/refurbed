@@ -29,7 +29,6 @@ func NewClient(notifyURL string, opts ...Option) *Client {
 
 	// set default values that weren't set by the options
 	if c.httpClient == nil {
-		// set default http client
 		WithHTTPClient(http.DefaultClient)(c)
 	}
 	if c.parallel == nil {
@@ -70,14 +69,14 @@ func (r *Result) Err() error {
 	return r.err
 }
 
-// Wait waits for the operation is over and return the result of it.
+// Wait waits for the operation is over.
 func (r *Result) Wait() {
 	<-r.finished
 }
 
-// Notify will return an Result which can be inspect for error or success.
+// Notify will return an *Result which can be inspect for error or success.
 // Because the operation is async before call .Err() it's needed to call .Wait()
-// which will return when the operation is complete an error (or nil) is available.
+// which will return when the operation is complete an error (or nil) will be available.
 //
 // The operation is async but an amount of parallel requests is assured,
 // which means that the call for this method will not block if the number of
