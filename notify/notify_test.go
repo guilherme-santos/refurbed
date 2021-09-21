@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
+	"time"
 
 	"github.com/guilherme-santos/refurbed/notify"
 )
@@ -78,6 +80,88 @@ func TestNotify_UnexpectedStatusCode(t *testing.T) {
 		}
 	} else {
 		t.Errorf("expected %T but received %T", expErr, err)
+	}
+}
+
+// TestNotify_WorksInParallel makes the message_1 slower and check if message_2 ends first.
+func TestNotify_WorksInParallel(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		body, _ := ioutil.ReadAll(req.Body)
+		msg := string(body)
+
+		if msg == "message_1" {
+			time.Sleep(500 * time.Millisecond)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	ctx := context.Background()
+
+	c := notify.NewClient(srv.URL)
+
+	firstRequest := make(chan struct{})
+	secondRequest := make(chan struct{})
+
+	res1 := c.Notify(ctx, "message_1")
+	// Give change for the first request goes though
+	runtime.Gosched()
+
+	res2 := c.Notify(ctx, "message_2")
+
+	go func() {
+		res1.Wait()
+		close(firstRequest)
+	}()
+	go func() {
+		res2.Wait()
+		close(secondRequest)
+	}()
+
+	select {
+	case <-firstRequest:
+		t.Fatal("first request ended first but it's slower, parallelism is not working")
+	case <-secondRequest:
+	}
+}
+
+// TestNotify_MaxParallelThrottle makes the message_1 slower and check if even though
+// message_2 will end last.
+func TestNotify_MaxParallelThrottle(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		body, _ := ioutil.ReadAll(req.Body)
+		msg := string(body)
+
+		if msg == "message_1" {
+			time.Sleep(500 * time.Millisecond)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	ctx := context.Background()
+
+	c := notify.NewClient(srv.URL, notify.MaxParallel(1))
+
+	firstRequest := make(chan struct{})
+	secondRequest := make(chan struct{})
+
+	res1 := c.Notify(ctx, "message_1")
+	res2 := c.Notify(ctx, "message_2")
+
+	go func() {
+		res1.Wait()
+		close(firstRequest)
+	}()
+	go func() {
+		res2.Wait()
+		close(secondRequest)
+	}()
+
+	select {
+	case <-firstRequest:
+	case <-secondRequest:
+		t.Fatal("second request ended first, throttle didn't work")
 	}
 }
 

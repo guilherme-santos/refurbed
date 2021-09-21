@@ -91,14 +91,15 @@ func (c Client) Notify(ctx context.Context, msg string) *Result {
 		defer func() {
 			// after the notification is done free up one slot for next requests.
 			<-c.parallel
+			close(res.errCh)
 		}()
 
-		if err := ctx.Err(); err != nil {
+		err := ctx.Err()
+		if err != nil {
 			res.errCh <- err
 			return
 		}
 		res.errCh <- c.notify(ctx, msg)
-		close(res.errCh)
 	}()
 
 	return &res
