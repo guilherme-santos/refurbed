@@ -25,6 +25,7 @@ func WithUserAgent(v string) Option {
 	}
 }
 
+// MaxParallel sets the max amount of request in parallel to be performed.
 func MaxParallel(v int) Option {
 	return func(c *Client) error {
 		c.parallel = make(chan struct{}, v)
