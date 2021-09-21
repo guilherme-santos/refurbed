@@ -36,8 +36,10 @@ func TestNotify(t *testing.T) {
 
 	c := notify.NewClient(srv.URL)
 	res := c.Notify(ctx, testMessage)
-	err := res.Wait()
-	if err != nil {
+
+	res.Wait()
+
+	if err := res.Err(); err != nil {
 		t.Errorf("no error was expected but received: %v", err)
 	}
 }
@@ -54,8 +56,10 @@ func TestNotify_WithCanceledContext(t *testing.T) {
 
 	c := notify.NewClient(srv.URL)
 	res := c.Notify(ctx, testMessage)
-	err := res.Wait()
-	if err != context.Canceled {
+
+	res.Wait()
+
+	if err := res.Err(); err != context.Canceled {
 		assert(t, context.Canceled, err)
 		return
 	}
@@ -71,7 +75,9 @@ func TestNotify_UnexpectedStatusCode(t *testing.T) {
 
 	c := notify.NewClient(srv.URL)
 	res := c.Notify(ctx, testMessage)
-	err := res.Wait()
+
+	res.Wait()
+	err := res.Err()
 
 	var expErr *notify.UnexpectedStatusCodeError
 	if errors.As(err, &expErr) {

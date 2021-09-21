@@ -36,8 +36,10 @@ func main() {
     client := notify.NewClient(notifyURL, opts...)
     result := client.Notify(ctx, "my message goes here")
 
-    // Block and wait the notification is over and handle the err.
-    err := result.Wait()
+    // Block and wait the operation is over.
+    result.Wait()
+
+    err := result.Err()
     if err != nil {
         fmt.Println("Unable to send message:", err)
         os.Exit(1)
@@ -52,8 +54,8 @@ The `Notify` is non-blocking if the number of ongoing requests is less than 1000
 
 The `Notify` method returns a `*notify.Result` with two methods, `Err()` and `Wait()`.
 
-* `Err()`: returns if the operation was success (returns nil) or a failure (return non-nil error). This method does not guarantee that the operation is over, but once it is, all the subsequent calls will return the same error or nil.
-* `Wait()` blocks and wait the operation is over and returns success (returns nil) or a failure (return non-nil error).
+* `Err()`: returns if the operation was success (returns nil) or a failure (return non-nil error). This method does not guarantee that the operation is over, but once it is, all the subsequent calls will return the same error or nil. Usually it's used after `Wait()` returns.
+* `Wait()` blocks and wait the operation is over.
 
 If you're not interested in the result and wants to have a completely async operation, is safe to ignore the return of `Notify()` method.
 

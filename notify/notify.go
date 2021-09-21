@@ -62,7 +62,7 @@ func (r *Result) readError() {
 }
 
 // Err returns the current status of the operation, it's not guaranteed that
-// the operation is over already, for that use Wait method.
+// the operation is over already, for that make sure to call Wait() method before.
 func (r *Result) Err() error {
 	r.errMu.Lock()
 	defer r.errMu.Unlock()
@@ -71,9 +71,8 @@ func (r *Result) Err() error {
 }
 
 // Wait waits for the operation is over and return the result of it.
-func (r *Result) Wait() error {
+func (r *Result) Wait() {
 	<-r.finished
-	return r.Err()
 }
 
 // Notify will return an Result which can be inspect for error or success.

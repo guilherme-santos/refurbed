@@ -105,7 +105,9 @@ scanFor:
 
 		res := c.Notify(ctx, txt)
 		go func() {
-			err := res.Wait()
+			res.Wait()
+
+			err := res.Err()
 			if err != nil && err != context.Canceled {
 				fmt.Fprintf(os.Stderr, "Error sending message %q: %s\n", txt, err)
 			} else if verbose {
